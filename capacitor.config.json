@@ -1,0 +1,6 @@
+{
+  "appId": "com.lavazlife.lavaforged",
+  "appName": "Lava Forged",
+  "webDir": ".",
+  "bundledWebRuntime": false
+}
