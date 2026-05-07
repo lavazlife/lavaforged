@@ -18,7 +18,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -26,8 +26,14 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Install dependencies
-        run: npm install
+      # We install globally on the runner so npx cap commands work flawlessly
+      - name: Install Capacitor CLI Globally
+        run: npm install -g @capacitor/cli
+
+      - name: Add Android Platform
+        run: |
+          npm install @capacitor/core @capacitor/android
+          npx cap add android
 
       - name: Sync Capacitor
         run: npx cap sync android
