@@ -1,9 +1,11 @@
 const CACHE_NAME = 'lava-forged-cache-v1';
 
 const ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.webmanifest'
+  './',
+  './index.html',
+  './style.css',
+  './app.js',
+  './manifest.webmanifest'
 ];
 
 // Install: cache core assets
@@ -40,6 +42,7 @@ self.addEventListener('fetch', (event) => {
 
   const acceptHeader = request.headers.get('accept') || '';
 
+  // HTML requests: network first, then cache, then root fallback
   if (acceptHeader.includes('text/html')) {
     event.respondWith(
       fetch(request)
@@ -49,10 +52,11 @@ self.addEventListener('fetch', (event) => {
           return response;
         })
         .catch(() =>
-          caches.match(request).then((res) => res || caches.match('/'))
+          caches.match(request).then((res) => res || caches.match('./'))
         )
     );
   } else {
+    // Static assets: cache first, then network
     event.respondWith(
       caches.match(request).then((cached) => {
         if (cached) return cached;
