@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+  />
+  <title>Lava Forged Unified Workspace</title>
+
+  <!-- Tailwind + LocalForage -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js"></script>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Outfit:wght@300;400;600;800&family=Fira+Code:wght@400;600&family=Orbitron:wght@500;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- PWA manifest + Android theme color -->
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <meta name="theme-color" content="#ff3300" />
+</head>
+<body class="h-full">
+  <!-- Background layers -->
+  <div class="premium-bg"></div>
+  <div class="noise"></div>
+
+  <!-- App shell -->
+  <div id="app-shell" class="flex flex-col h-screen">
+    <!-- Header -->
+    <header class="shrink-0 px-4 py-4 border-b border-white/10 bg-black/40 backdrop-blur-md">
+      <div class="flex flex-col gap-4">
+        <div class="flex justify-between items-center">
+          <div>
+            <h1 class="text-3xl neon-title leading-tight">Lava Forged</h1>
+            <div class="text-[8px] uppercase tracking-[0.2em] text-orange-400 font-bold">
+              Molten Core Engine
+            </div>
+          </div>
+          <div>
+            <button
+              id="work-mode-btn"
+              class="chrome-metal btn-3d px-3 py-1.5 rounded-full text-[9px]"
+              onclick="app.toggleWorkMode()"
+            >
+              WORK OFF
+            </button>
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <div class="glass-card rounded-xl px-3 py-1.5 flex items-center gap-2">
+            <input
+              id="globalSearch"
+              type="text"
+              placeholder="Search Data..."
+              class="bg-transparent border-0 outline-none text-sm text-white placeholder-slate-500 w-full"
+            />
+            <button
+              class="chrome-metal btn-3d px-2 py-1 rounded-lg text-[10px]"
+              onclick="app.filterGlobal()"
+            >
+              FIND
+            </button>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <select
+              id="brand-selector"
+              class="chrome-metal rounded-lg px-3 py-1.5 text-[10px]"
+              onchange="app.saveBrandingPref()"
+            >
+              <option value="Lava Forged Default">Lava Forged</option>
+              <option value="Lavaz Life Designs">Lavaz Life Designs</option>
+              <option value="R.B Signature">R.B Signature</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Tabs -->
+    <nav
+      class="shrink-0 px-4 py-3 flex gap-2 overflow-x-auto no-scrollbar border-b border-white/10 bg-black/60"
+    >
+      <button
+        id="tab-notes"
+        class="chrome-metal btn-3d nav-tab active px-3 py-2 rounded-lg"
+        onclick="app.setView('notes')"
+      >
+        WORK
+      </button>
+      <button
+        id="tab-prompts"
+        class="chrome-metal btn-3d nav-tab px-3 py-2 rounded-lg"
+        onclick="app.setView('prompts')"
+      >
+        AI
+      </button>
+      <button
+        id="tab-media"
+        class="chrome-metal btn-3d nav-tab px-3 py-2 rounded-lg"
+        onclick="app.setView('media')"
+      >
+        MEDIA
+      </button>
+      <button
+        id="tab-vault"
+        class="chrome-metal btn-3d nav-tab px-3 py-2 rounded-lg"
+        onclick="app.setView('vault')"
+      >
+        VAULT
+      </button>
+      <button
+        id="tab-journal"
+        class="chrome-metal btn-3d nav-tab px-3 py-2 rounded-lg"
+        onclick="app.setView('journal')"
+      >
+        JOURNAL
+      </button>
+      <button
+        id="tab-batch"
+        class="chrome-metal btn-3d nav-tab px-3 py-2 rounded-lg"
+        onclick="app.setView('batch')"
+      >
+        BATCH
+      </button>
+      <button
+        id="tab-sandbox"
+        class="chrome-metal btn-3d nav-tab px-3 py-2 rounded-lg"
+        onclick="app.setView('sandbox')"
+      >
+        PLAY
+      </button>
+      <button
+        id="tab-library"
+        class="chrome-metal btn-3d nav-tab px-3 py-2 rounded-lg"
+        onclick="app.setView('library')"
+      >
+        LIBRARY
+      </button>
+      <button
+        id="tab-dash"
+        class="chrome-metal btn-3d nav-tab px-3 py-2 rounded-lg"
+        onclick="app.setView('dash')"
+      >
+        DASH
+      </button>
+    </nav>
+
+    <!-- Main content area -->
+    <main class="flex-1 overflow-hidden">
+      <!-- WORKSPACE VIEW -->
+      <section id="view-notes" class="tab-pane p-4">
+        <div class="h-full flex flex-col p-2 gap-2">
+          <div class="shrink-0 flex gap-2">
+            <button
+              onclick="app.newNote()"
+              class="chrome-metal btn-3d flex-1 py-3 font-bold text-[10px] rounded-lg"
+            >
+              NEW ENTRY
+            </button>
+            <button
+              onclick="app.toggleSidebar()"
+              class="chrome-metal btn-3d px-4 py-3 rounded-lg text-[10px]"
+            >
+              LIST
+            </button>
+          </div>
+
+          <div class="flex-1 flex gap-3 overflow-hidden">
+            <!-- Sidebar -->
+            <div
+              id="note-sidebar"
+              class="hidden flex flex-col gap-2 max-h-40 overflow-y-auto"
+            >
+              <input
+                id="noteSearch"
+                type="text"
+                class="search-input text-xs"
+                placeholder="Search..."
+                oninput="app.renderNotes()"
+              />
+              <div id="note-list" class="space-y-1"></div>
+            </div>
+
+            <!-- Editor -->
+            <div class="flex-1 panel-3d flex flex-col overflow-hidden">
+              <div
+                class="p-3 border-b border-white/10 flex items-center gap-2"
+              >
+                <input
+                  type="text"
+                  id="note-title"
+                  oninput="app.saveWorkspace()"
+                  class="bg-transparent text-base font-bold text-white outline-none flex-1"
+                  placeholder="Title..."
+                />
+                <button
+                  onclick="app.deleteActiveNote()"
+                  class="bg-red-900/40 text-red-400 p-2 rounded-lg"
+                >
+                  DEL
+                </button>
+              </div>
+              <div class="flex-1 overflow-y-auto p-4 flex flex-col">
+                <div
+                  id="editor"
+                  class="workspace-editor inset-screen text-sm flex-1"
+                  contenteditable="true"
+                  data-placeholder="Forge text here..."
+                  oninput="app.saveWorkspace()"
+                ></div>
+              </div>
+              <div
+                class="px-4 py-2 border-t border-white/10 flex justify-between items-center bg-black/40"
+              >
+                <span
+                  id="word-count"
+                  class="text-[9px] text-orange-500 font-mono font-bold uppercase tracking-widest"
+                  >0 W | 0 C</span
+                >
+                <button
+                  onclick="app.exportAllNotes()"
+                  class="text-[9px] text-white bg-slate-800 px-2 py-1 rounded font-bold uppercase tracking-widest hover:bg-slate-700"
+                >
+                  Export All
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PROMPT ARCHITECT -->
+      <section
+        id="view-prompts"
+        class="tab-pane p-4 hidden-view"
+      >
+        <div class="max-w-4xl mx-auto space-y-4">
+          <div class="panel-3d p-5 fade-in">
+            <h2 class="text-xl font-bold text-white mb-4">
+              Prompt Architect
+            </h2>
+            <div class="flex flex-col gap-3">
+              <input
+                id="topic"
+                type="text"
+                class="premium-input"
+                placeholder="What's the topic?"
+              />
+              <button
+                onclick="app.generatePrompt()"
+                class="bg-orange-600 hover:bg-orange-500 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-3 transition-colors"
+              >
+                <span>GENERATE</span>
+                <div
+                  id="loader-prompt"
+                  class="loader-ring hidden"
+                ></div>
+              </button>
+            </div>
+            <div
+              id="resultContainer"
+              class="hidden mt-6 border-t border-white/10 pt-4"
+            >
+              <div class="flex items-center justify-between mb-3">
+                <span
+                  class="text-[10px] uppercase tracking-widest text-orange-400 font-bold"
+                  >Output</span
+                >
+                <div class="flex gap-2">
+                  <button
+                    onclick="app.copyText(document.getElementById('result').innerText)"
+                    class="bg-slate-800 px-3 py-1.5 rounded-lg text-[10px] font-bold"
+                  >
+                    COPY
+                  </button>
+                </div>
+              </div>
+              <div
+                id="result"
+                class="inset-screen rounded-xl p-4 text-[11px] code-box max-h-[200px] overflow-auto"
+              ></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- MEDIA VIEW -->
+      <section
+        id="view-media"
+        class="tab-pane p-4 hidden-view"
+      >
+        <div class="max-w-4xl mx-auto space-y-4">
+          <div class="flex justify-center gap-2 mb-2">
+            <button
+              id="tab-media-prompt"
+              class="chrome-metal btn-3d px-4 py-2 rounded-lg text-[10px] font-bold"
+              onclick="app.switchMediaTab('prompt')"
+            >
+              VISUAL
+            </button>
+            <button
+              id="tab-media-podcast"
+              class="chrome-metal btn-3d px-4 py-2 rounded-lg text-[10px] font-bold"
+              onclick="app.switchMediaTab('podcast')"
+            >
+              AUDIO
+            </button>
+            <button
+              id="tab-media-video"
+              class="chrome-metal btn-3d px-4 py-2 rounded-lg text-[10px] font-bold"
+              onclick="app.switchMediaTab('video')"
+            >
+              VIDEO
+            </button>
+          </div>
+
+          <!-- Visual Director -->
+          <div
+            id="media-view-prompt"
+            class="glass-card rounded-2xl p-5 fade-in"
+          >
+            <h3 class="text-lg font-bold mb-4 text-gradient">
+              Visual Director
+            </h3>
+            <div class="flex flex-col gap-3">
+              <input
+                id="media-topic"
+                type="text"
+                class="premium-input"
+                placeholder="e.g., Cyberpunk City..."
+              />
+              <button
+                onclick="app.generateMediaPrompt()"
+                class="bg-orange-600 text-white font-bold py-3 rounded-xl"
+              >
+                GENERATE
+              </button>
+            </div>
+            <div
+              id="media-resultContainer"
+              class="hidden mt-6 border-t border-white/10 pt-4"
+            >
+              <div
+                id="media-result"
+                class="inset-screen p-4 rounded-xl text-[11px] font-mono whitespace-pre-wrap"
+              ></div>
+            </div>
+          </div>
+
+          <!-- Podcast Studio -->
+          <div
+            id="media-view-podcast"
+            class="hidden-view glass-card rounded-2xl p-5 fade-in"
+          >
+            <h3 class="text-lg font-bold mb-4 text-orange-400">
+              Audio Studio
+            </h3>
+            <textarea
+              id="podcast-topic"
+              class="premium-input h-20 mb-3"
+              placeholder="Theme..."
+            ></textarea>
+            <button
+              onclick="app.generatePodcast()"
+              class="bg-red-700 text-white font-bold py-3 rounded-xl w-full"
+            >
+              BUILD SCRIPT
+            </button>
+            <div
+              id="resultPodcastContainer"
+              class="hidden mt-6 flex flex-col gap-4"
+            >
+              <div
+                class="aspect-video rounded-xl bg-black border border-white/10 relative overflow-hidden"
+              >
+                <img
+                  id="podcast-cover"
+                  src=""
+                  class="w-full h-full object-cover hidden"
+                />
+                <div
+                  id="podcast-image-loader"
+                  class="absolute inset-0 flex items-center justify-center"
+                >
+                  <div class="loader-ring"></div>
+                </div>
+              </div>
+              <div
+                id="podcast-script"
+                class="inset-screen p-4 rounded-xl text-[11px] max-h-40 overflow-y-auto font-mono"
+              ></div>
+            </div>
+          </div>
+
+          <!-- Video Artifact -->
+          <div
+            id="media-view-video"
+            class="hidden-view glass-card rounded-2xl p-5 fade-in"
+          >
+            <h3 class="text-lg font-bold mb-4 text-orange-400">
+              Video Artifact
+            </h3>
+            <input
+              id="video-topic"
+              type="text"
+              class="premium-input mb-3"
+              placeholder="Concept..."
+            />
+            <button
+              onclick="app.generateVideo()"
+              class="bg-orange-600 text-white font-bold py-3 rounded-xl w-full"
+            >
+              DIRECT
+            </button>
+            <div
+              id="resultVideoContainer"
+              class="hidden mt-6 flex flex-col gap-4"
+            >
+              <div
+                class="aspect-video rounded-xl bg-black border border-white/10 relative overflow-hidden"
+              >
+                <img
+                  id="video-frame"
+                  src=""
+                  class="w-full h-full object-cover hidden"
+                />
+                <div
+                  id="video-image-loader"
+                  class="absolute inset-0 flex items-center justify-center"
+                >
+                  <div class="loader-ring"></div>
+                </div>
+              </div>
+              <div
+                id="video-script"
+                class="inset-screen p-4 rounded-xl text-[11px] font-mono"
+              ></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VAULT VIEW -->
+      <section
+        id="view-vault"
+        class="tab-pane p-4 hidden-view"
+      >
+        <div class="max-w-lg mx-auto space-y-4">
+          <div class="panel-3d p-5">
+            <h2 class="text-xl font-bold text-orange-500 text-center mb-2">
+              LLD VAULT
+            </h2>
+            <div
+              class="text-center text-2xl font-black text-white mb-6"
+              id="vault-total"
+            >
+              $0.00
+              <span class="text-[10px] text-slate-400 font-normal">/mo</span>
+            </div>
+
+            <div class="space-y-3">
+              <input
+                type="text"
+                id="vName"
+                class="premium-input text-sm"
+                placeholder="Service Name e.g. Midjourney"
+              />
+              <input
+                type="number"
+                id="vAmount"
+                class="premium-input text-sm"
+                placeholder="Monthly Fee"
+              />
+              <input
+                type="text"
+                id="vUrl"
+                class="premium-input text-sm"
+                placeholder="URL / Website"
+              />
+              <button
+                class="bg-orange-600 text-white font-bold py-3 rounded-xl w-full text-xs hover:bg-orange-500"
+                onclick="app.addVaultItem()"
+              >
+                VAULT SUBSCRIPTION
+              </button>
+            </div>
+          </div>
+
+          <div class="panel-3d p-4">
+            <h3
+              class="text-xs font-bold border-b border-white/10 pb-2 mb-4 opacity-60"
+            >
+              ACTIVE SUBSCRIPTIONS
+            </h3>
+            <div id="vaultList" class="vault-grid"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- JOURNAL VIEW -->
+      <section
+        id="view-journal"
+        class="tab-pane p-4 hidden-view"
+      >
+        <div class="h-full flex flex-col gap-3">
+          <div class="panel-3d p-3 flex justify-between gap-2">
+            <button
+              id="dictate-btn"
+              onclick="app.toast('Dictation initialized...')"
+              class="chrome-metal btn-3d text-[10px] px-4 py-2 rounded-lg"
+            >
+              DICTATE
+            </button>
+            <div class="flex gap-2">
+              <button
+                onclick="app.exportJournalTxt()"
+                class="chrome-metal btn-3d text-[10px] px-3 py-2 rounded-lg"
+              >
+                EXPORT
+              </button>
+              <button
+                onclick="app.clearJournal()"
+                class="bg-red-900/30 text-red-500 px-3 py-2 rounded-lg text-[10px] hover:bg-red-900/60"
+              >
+                CLEAR
+              </button>
+            </div>
+          </div>
+          <div
+            id="journal-editor"
+            contenteditable="true"
+            class="flex-1 inset-screen p-5 overflow-y-auto outline-none rounded-xl text-base"
+            oninput="app.saveWorkspace()"
+          ></div>
+        </div>
+      </section>
+
+      <!-- BATCH VIEW -->
+      <section
+        id="view-batch"
+        class="tab-pane p-4 hidden-view"
+      >
+        <div class="max-w-lg mx-auto panel-3d p-5">
+          <h2 class="text-xl font-bold mb-4 text-orange-400">
+            Batch Logic
+          </h2>
+          <div class="grid grid-cols-2 gap-3 mb-4">
+            <input
+              type="text"
+              id="batch-target"
+              class="premium-input text-xs"
+              placeholder="Find"
+            />
+            <input
+              type="text"
+              id="batch-replace"
+              class="premium-input text-xs"
+              placeholder="Replace"
+            />
+          </div>
+          <textarea
+            id="batch-input"
+            class="premium-input h-48 text-xs font-mono mb-4"
+            placeholder="Input bulk text..."
+          ></textarea>
+          <button
+            class="bg-orange-600 text-white font-bold py-3 w-full rounded-xl text-xs"
+            onclick="app.runBatch()"
+          >
+            PROCESS CONTENT
+          </button>
+        </div>
+      </section>
+
+      <!-- SANDBOX VIEW -->
+      <section
+        id="view-sandbox"
+        class="tab-pane p-4 hidden-view"
+      >
+        <div class="h-full flex flex-col gap-3">
+          <div class="flex justify-between items-center">
+            <h2
+              class="text-sm font-bold uppercase tracking-widest text-orange-500"
+            >
+              Sandbox
+            </h2>
+            <div class="flex gap-2">
+              <button
+                onclick="app.copySandbox()"
+                class="bg-slate-700 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold"
+              >
+                COPY
+              </button>
+              <button
+                onclick="app.runSandbox()"
+                class="bg-orange-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold"
+              >
+                RUN
+              </button>
+            </div>
+          </div>
+          <div
+            id="sandbox-btn-container"
+            class="flex gap-2 overflow-x-auto no-scrollbar pb-2"
+          ></div>
+          <div class="flex flex-col md:flex-row gap-3 flex-1">
+            <textarea
+              id="sandboxInput"
+              class="premium-input code-box h-52 md:h-auto text-xs"
+              placeholder="HTML/CSS/JS..."
+              oninput="app.runSandbox()"
+            ></textarea>
+            <iframe
+              id="sandbox-preview"
+              class="flex-1 rounded-xl border border-white/10 bg-black"
+            ></iframe>
+          </div>
+        </div>
+      </section>
+
+      <!-- LIBRARY VIEW (Prompt Database) -->
+      <section
+        id="view-library"
+        class="tab-pane p-4 hidden-view"
+      >
+        <div class="max-w-4xl mx-auto space-y-4">
+          <div class="panel-3d p-5 flex items-center justify-between">
+            <div>
+              <h2 class="text-lg font-bold text-orange-500">
+                Prompt Database
+              </h2>
+              <p class="text-[10px] text-slate-400">
+                Historical Context & Frameworks
+              </p>
+            </div>
+            <select
+              id="lib-filter"
+              class="bg-slate-900 border border-white/10 text-xs p-2 rounded-lg outline-none text-orange-400"
+              onchange="app.renderLibrary()"
+            >
+              <option value="all">All Prompts</option>
+              <option value="lld">Lavaz Life Designs</option>
+              <option value="cinematic">Cinematic Image</option>
+              <option value="horror">Wytheville Archives</option>
+              <option value="document">Premium Documents</option>
+              <option value="instructional">Instructional Guides</option>
+            </select>
+          </div>
+          <div id="library-grid" class="space-y-3"></div>
+        </div>
+      </section>
+
+      <!-- DASH VIEW -->
+      <section
+        id="view-dash"
+        class="tab-pane p-4 hidden-view"
+      >
+        <div class="max-w-4xl mx-auto space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div class="panel-3d status-card p-4 border-l-2 border-l-orange-500">
+              <div class="status-indicator !bg-orange-500 !shadow-[0_0_10px_#f97316]"></div>
+              <div>
+                <label
+                  class="text-[9px] uppercase tracking-widest text-slate-400"
+                  >Engine</label
+                >
+                <div class="text-lg font-bold text-white">READY</div>
+              </div>
+            </div>
+
+            <div class="panel-3d status-card p-4 border-l-2 border-l-orange-500">
+              <div class="status-indicator !bg-orange-500 !shadow-[0_0_10px_#f97316]"></div>
+              <div>
+                <label
+                  class="text-[9px] uppercase tracking-widest text-slate-400"
+                  >Sync</label
+                >
+                <div class="text-lg font-bold text-white">LOCAL</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-3d p-5">
+            <div class="diag-title text-sm !border-b-orange-900/50">
+              System Diagnostics
+            </div>
+            <div class="diag-panel space-y-2 text-[11px]">
+              <div class="flex justify-between">
+                <span>Model</span>
+                <span id="diag-model" class="!text-orange-400">
+                  SM-S926U1
+                </span>
+              </div>
+              <div class="flex justify-between">
+                <span>Platform</span>
+                <span id="diag-platform" class="!text-orange-400">
+                  Android
+                </span>
+              </div>
+              <div class="flex justify-between">
+                <span>Resolution</span>
+                <span id="diag-res" class="!text-orange-400">--</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Memory</span>
+                <span id="diag-mem" class="!text-orange-400">~12GB</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Battery</span>
+                <span id="diag-batt" class="!text-orange-400">--</span>
+              </div>
+            </div>
+            <div class="flex gap-2 mt-4">
+              <button
+                class="chrome-metal btn-3d flex-1 py-2 text-[10px] uppercase font-bold"
+                onclick="app.repairDiagnostics()"
+              >
+                Calibrate
+              </button>
+              <button
+                class="bg-red-900/30 text-red-500 border border-red-900 px-4 py-2 rounded-lg text-[10px] font-bold"
+                onclick="app.nukeData()"
+              >
+                FACTORY RESET
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer
+      class="shrink-0 px-4 py-2 border-t border-white/10 bg-black/80 backdrop-blur-md flex justify-between items-center"
+    >
+      <div
+        class="text-[8px] uppercase tracking-widest text-slate-500 font-bold"
+      >
+        Lava Forged v10.0.0
+      </div>
+      <div
+        id="save-status"
+        class="opacity-0 transition-opacity text-[8px] text-white bg-orange-600 px-2 py-0.5 rounded uppercase font-bold"
+      >
+        Syncing
+      </div>
+    </footer>
+  </div>
+
+  <!-- Toast -->
+  <div
+    id="toast"
+    class="toast text-xs font-bold uppercase tracking-widest border border-orange-500/30"
+  >
+    <span id="toast-msg"></span>
+  </div>
+
+  <!-- App logic -->
+  <script src="app.js"></script>
+
+  <!-- Service Worker registration -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker
+          .register('/sw.js')
+          .catch((err) => console.error('SW registration failed', err));
+      });
+    }
+  </script>
+</body>
+</html>
